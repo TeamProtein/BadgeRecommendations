@@ -1,216 +1,177 @@
-// var _ = require('_');
+// var _ = require('lodash');
 
 var usernames = ["mitchelllillie", "patharryux", "jeffdunn", "donguyen", "mkelley2", "josephfraley2", "kathleenkent", "adamtaitano", "jasonsiren"];
 // var usernames = ["jtz1983", "erikphansen"];
 
+//check for inputs and add to array on button click
+// var $uname = $('#uname').val();
+// $("#in").click(function () {
+//   usernames.push($uname);
+//   $("body").empty();
+//   usernames.forEach(getData);
+// });
 
-usernames.forEach(function(name) {
+function getData (name) {
     $.get('http:/teamtreehouse.com/'+name+'.json').
-        done(BadgeGroup);
-});
+        done(importUser);
+}
+
+usernames.forEach(getData);
 
 var allUsers = {};
+var allBadges = {};
 
-function BadgeGroup (response) {
-  var bad = [];
-  for (var w in response.badges) {
-    bad.push(response.badges[w].id);
-  }
-  allUsers[response.profile_name] = bad;
-  // thisUser.username = response.profile_name;
-  // thisUser.badges = [];
-  // for (var i = 0; i < badges.length; i++) {
-  //   thisUser.badges.push(
-  //     {id: (badges[i].id),
-  //     name: badges[i].name,
-  //     url: badges[i].icon_url
-  //     });
-// }
-
-  // allUsers.push(thisUser);
-
-  if (allUsers.length >= usernames.length) {
-    recommendBadges();
+function importUser(response) {
+  var imported = new PersonCtor(response.profile_name, response.name);
+  allUsers[response.profile_name] = imported;
+  response.badges.forEach(function(badge) {
+    imported.addBadge(badge.id, badge.name, badge.icon_url);
+  });
+  if (_.keys(allUsers).length >= usernames.length) {
+    printBadges();
   }
 }
-console.log(allUsers);
 
-function recommendBadges() {
-  //all badges, with ids, srcs, and names
-  var allBadgesArray = [];
-  //Assemble Array to hold strings of ALL jobs
-  for (var prop in allUsers) {
-      allBadgesArray = allBadgesArray.concat(allUsers[prop].badges);
-      allBadgesArray = _.uniq(allBadgesArray, "id");
+function BadgeCtor(id, name, url) {
+  this.id = id;
+  this.name = name;
+  this.url = url;
+  this.whoHas = {};
+}
+
+BadgeCtor.prototype.addUser = function (name, userObj) {
+  this.whoHas[name] = userObj;
+};
+
+// called by PersonCtor.prototype.addBadge
+function reqBadge (id, name, url) {
+  if (!(id in allBadges)) {
+    allBadges[id] = new BadgeCtor(id, name, url);
   }
+  return allBadges[id];
+}
 
-  var allBadgeIDs = [];
-  for (var q in allBadgesArray) {
-    allBadgeIDs.push(allBadgesArray[q].id);
+function PersonCtor (username, name) {
+  this.username = username;
+  this.name = name;
+  this.badges = {};
+  this.similarity = {};
+  this.scores = {};
+}
+
+PersonCtor.prototype.addBadge = function (id, name, url) {
+  var addedBadge = reqBadge(id, name, url);
+  this.badges[id] = addedBadge;
+  addedBadge.addUser(this.username, this);
+};
+
+function hasBadge(uname, bID) {
+  var testUser = allUsers[uname] || uname;
+  bID += "";
+  // if string parameters:
+  return (bID in testUser.badges);
+}
+
+function peopleDoing(bID) {
+  var testBadge = allBadges[bID] || bID;
+  // overload for string parameter:
+  return testBadge.whoHas;
+} //--> Array of people-objects
+
+function badgesDoneBy(uname) {
+  var testUser = allUsers[uname] || uname;
+  // overload for string parameter:
+  return testUser.badges;
+} //--> Array of badge objects
+
+function intersectBadges(nameA, nameB) {
+  // overload for both strings and objects
+  var nA = allUsers[nameA] || nameA;
+  var nB = allUsers[nameB] || nameB;
+
+  // actual intersection
+  var intersectKeys = _.intersection(_.keys(nA.badges), _.keys(nB.badges));
+  var intersectArr = [];
+  for (var i = 0; i< intersectKeys.length; i++) {
+    intersectArr.push(nA.badges[intersectKeys[i]]);
   }
+  return intersectArr;
+}
 
-  var allRecs = {};
+function similarity(personA, personB) {
+  // overload for both strings and objects
+  var pA = allUsers[personA] || personA;
+  var pB = allUsers[personB] || personB;
 
-
-
-  // person->uname
-  // job->bID
-  // testJob->testBadge
-  // testPerson->testUser
-  // people->group
-  // jobs->badges
-
-  for (var student in allUsers) {
-
-      var badgeNeedsArray = _.difference(allBadgesArray, allUsers[student].badges);
-      // console.log(allUsers[student].username);
-      // console.log(badgeNeedsArray);
+  // get intersected badges
+  var intersect = _.keys(intersectBadges(pA, pB)).length;
+  var alength = _.keys(badgesDoneBy(pA)).length;
+  var blength = _.keys(badgesDoneBy(pB)).length;
 
 
-
-      //Create Objects and push into finalArray
-      for (var i = 0; i < badgeNeedsArray.length; i++) {
-        badgeNeedsArray[i].score = score((badgeNeedsArray[i].id + ""), allUsers[student].username);
-      }
-
-  }
-
-        //Sort finalArray by Score Value
-       function finalArrayCallback(a,b) {
-         if (a.score > b.score) {
-           return -1;
-         }
-         else {
-           return 1;
-         }
-       }
-      //  return finalArray.sort(finalArrayCallback);
-
-
-  function hasBadge(uname,bID) {
-    var testBadge;
-    var testUser;
-    if (typeof uname === "string" && typeof bID === "string") {
-      // if string parameters, use var job as is but convert person to property name and then look in that jobs property
-      testBadge = bID;
-      testBadge = group[uname].badges;
+  //see whih person has more jobs and divide number of intersected jobs by that amount
+  if (alength > blength) {
+    // console.log(intersect);
+    pA.similarity[pB.username] = intersect/alength;
+    // console.log(intersect);
+    pB.similarity[pA.username] = intersect/alength;
   } else {
-      // if object parameters, get the key of the job (provides a string) and look in the person object for the job parameter
-      testBadge = bID.bID;
-      testUser = uname.badges;
-    }
-    return (testBadge in testUser);
+    // console.log(allUsers[pA]);
+    // console.log(pA.similarity);
+    pA.similarity[pB.username] = intersect/blength;
+    pB.similarity[pA.username] = intersect/blength;
   }
+}
 
+///Score:
+// _.mapvalues to get an object with different key/values
+function score(bID, uname) {
+  // overload for badge and name and initialize the score to 0
+  var badgeID = allBadges[bID] || bID,
+      user = allUsers[uname] || uname,
+      retScore = 0;
 
-  function peopleDoing(bID) {
-    var peopleArr = [];
-    for (var names in allUsers) {
-      for (var badg in allUsers[names].badges)
-        if (allUsers[names].badges[badg].id === bID) {
-          peopleArr.push(allUsers[names]);
-        }
+  // get an array of the people objects who have done the badge
+  var badgesDoing = peopleDoing(badgeID);
+
+  // skipping the person being tested, sum the similarities of all people in the array
+  for (var name in badgesDoing) {
+    // console.log(badgesDoing[name]);
+    if (badgesDoing[name].username !== user.username) {
+      // console.log("similarity:");
+      // console.log(similarity(p.username, badgesDoing[name].username));
+      similarity(user.username, badgesDoing[name].username);
+      retScore += user.similarity[name];
     }
-    return peopleArr;
-  } //--> Array of people-objects
-
-
-  function badgesDoneBy(uname) {
-    var badgeArr = [];
-    for (var doneB in uname.badges) {
-      jobsArr.push(badges[doneB]);
-    }
-    return badgeArr;
   }
+  user.scores[badgeID.id] = retScore;
+}
 
-  function maxLength(strings){
-  return strings.sort(function (a, b) { return b.length - a.length; })[0].length;
+function recommend (uname) {
+  for (var badges in allBadges) {
+    score(badges, uname);
   }
-
-  function sizeColumns(rowNames, colNames) {
-     var arr = [];
-     var colMax = maxLength(colNames); //Get Longest Col String
-     for (var i = 0; i <= colNames.length; i++) {
-       if (i === 0) { //Push longest row length first to array
-         arr.push(maxLength(rowNames));
-       }
-       else { //Remaining items will be longest Col length
-         arr.push(colMax);
-       }
-     }
-     return arr;
-  }
-
-  function writeRow(colSizes,strings){
-    var straw = "";
-    function rightPad(str,len){
-      var padding = Array(len-str.length +1).join(' ');
-      return (str+padding);
-    }
-    for(var i=0;i<colSizes.length;i++){
-      straw += rightPad(strings[i],colSizes[i]);
-    }
-    return straw;
-  }
-
-  /*----------------------------------
-  Data processing ====================
-  -----------------------------------*/
-
-  function intersectBadges(nameA, nameB) {
-    for (var z in allUsers) {
-      if (allUsers[z].username === nameA) {
-        nA = allUsers[z];
-      }
-      if (allUsers[z].username === nameB) {
-        nB = allUsers[z];
-      }
-    }
-    return (_.intersection([nA].badges), ([nB].badges));
-  }
-
-  function similarity(personA, personB) {
-    // overload for both strings and objects
-    // var pA,
-    //     pB;
-    // if (typeof personA === "string") {
-    //   pA = group[personA];
-    // } else {
-    //   pA = personA;
-    // }
-    // if (typeof personB === "string") {
-    //   pB = group[personB];
-    // } else {
-    //   pB = personB;
-    // }
-    // get intersected jobs
-    var intersect = intersectBadges(personA, personB);
-    //see whih person has more jobs and divide number of intersected jobs by that amount
-    if (allUsers[personA].badges.length > allUsers[personB].badges.length) {
-      return intersect.length/allUsers[personA].badges.length;
+  var xArray = _.pairs(allUsers[uname].scores);
+  xArray.sort(function(a,b) {
+    if (a[1] > b[1]) {
+      return -1;
     } else {
-      return intersect.length/allUsers[personB].badges.length;
+      return 1;
     }
-  }
+  });
+  return xArray.slice(1,6);
 
-  function score(bID, uname) {
-    var retScore = 0;
-    var badgesDoing = peopleDoing(bID);
-    //TODO: We are here with an array of people objects
-    for (var name in badgesDoing) {
-      if (badgesDoing[name].username == uname) {}
-      else {
-        retScore += similarity(uname, badgesDoing[name].username);
-      }
-    }
-    return retScore;
-  }
-
-  // console.log(allUsers);
-  printBadges();
+//   allUsers[uname].scores = _.pick(allUsers[uname].scores, function (value) {
+//   return value > 1;
+// });
 }
 
 function printBadges() {
+  $("body").dblclick(
+    function () {
+      $("img").slideDown();
+      $("p").empty();
+    });
 
   // for every user:
   for (var user in allUsers) {
@@ -220,31 +181,35 @@ function printBadges() {
     var $user = $('<div class="user" id="' + allUsers[user].username + '">').appendTo("body");
 
     // create a header with the username
-    $("<H1>").appendTo($user).html(allUsers[user].username);
+    $("<H1>").appendTo($user).html(allUsers[user].name);
 
     // for every badge earned, append an image to the user's div
-    for (var badge in allUsers[user].badgeID) {
-      $("<img>", {src: allUsers[user].badgeImg[badge], alt: allUsers[user].badgeName[badge]}).appendTo($user);
+    for (var badge in allUsers[user].badges) {
+      $("<img>", {src: allUsers[user].badges[badge].url, alt: allUsers[user].badges[badge].name}).appendTo($user);
     }
 
     // create new div for recommendations
-    var $recDiv = $("<div>", {class: "recommended"});
+    var $recDiv = $("<div>", {class: "recommended"}).appendTo($user);
+    $("<H3>").html("Recommended badges:").appendTo($recDiv);
 
     // for all recommended badges, add an image if score meets qualifications with class "recommended"
-    for (var rec in allUsers[user].recommended) {
-      if (allUsers[user].recommended[rec].score > 0.3) {
-        $("<img>", {src: allUsers[user].badgeImg[badge], alt: allUsers[user].badgeName[badge]}).appendTo($recDiv);
-      }
-
+    var recs = recommend(user);
+    // console.log("recs = ");
+    // console.log(recs);
+    for (var rec in recs) {
+      // console.log(rec);
+        $("<img>", {src: allBadges[recs[rec][0]].url, alt: allBadges[recs[rec][0].name]}).appendTo($recDiv);
     }
   }
 
 
 }
-
+//
+// if (typeof module !== undefined) {
 // module.exports = {
 //     maxLength:maxLength,
 //     sizeColumns:sizeColumns,
 //     writeRow:writeRow,
 //     writeBadgesTable:writeBadgesTable
 //   };
+// }

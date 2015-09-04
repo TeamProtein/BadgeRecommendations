@@ -8,7 +8,7 @@ h1 {
 }
 
 img {
-  width: 20%;
+  width: auto;
   max-width: 130px;
   margin: 5px;
 }
@@ -22,4 +22,14 @@ div {
   border-radius: 8px;
   padding: 15px;
   margin: 10px;
+}
+
+.wrapper {
+  width: 20%;
+  float: left;
+  /*max-width: 130px;*/
+}
+
+.recommended {
+  background-color: red;
 }
