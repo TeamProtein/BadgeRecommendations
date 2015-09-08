@@ -1,9 +1,12 @@
 * {
    box-sizing: border-box;
+   -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
 body {
+   height: 100%;
    font-size: 1em;
-   letter-spacing: .15em;
+   letter-spacing: .2em;
    font-family: 'Oswald', sans-serif;
    text-transform: uppercase;
 }
@@ -28,7 +31,7 @@ body {
    width: 50%;
    float: left;
    padding: 10px;
-   background-color: #25ced1;
+   background-color: #5FCF80;
    color: whitesmoke;
    text-align: center;
    font-size: .9em;
@@ -51,42 +54,17 @@ body {
    -o-transition: background-color all 2s ease-in-out 0s;
 }
 .team:hover {
-   background: #25ced1;
+   background: #5FCF80;
    color: whitesmoke;
 }
 
 
 .user {
    background: tomato;
+   margin-bottom: 30px;
 }
 
 
-
-
-
-.nameDiv {
-}
-
-.nameDiv h1 {
-
-
-}
-
-
-
-
-
-
-
-.badgesDiv {
-}
-
-
-
-
-
-recBadgesDiv {
-}
 
 img {
    width: 25%;
@@ -96,3 +74,14 @@ img {
 img:hover {
    transform: scale(1.1);
 }
+
+#loadUser {
+   clear: both;
+   margin: 0 auto;
+   height: 60px;
+   width: 100%;
+   padding: 20px 0 0 0;
+   text-align: center;
+   background-color: #2E353B;
+   color: #5FCF80;
+};

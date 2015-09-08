@@ -170,20 +170,20 @@ function recommend (uname) {
 
 function printBadges() {
 
+   var j = 0;
+
    // for every user:
    for (var user in allUsers) {
 
      // create a div with class user and ID of username
+     var $user = $('<div id="' + allUsers[user].username + '">').addClass("user").addClass('user' + j).appendTo("body");
 
-     var $nameDiv = $(' <div class="nameDiv" </div>').appendTo("body");
-     $nameDiv.html('<h1>' + allUsers[user].username + '</h1>')
-
-     var $user = $('<div class="user" id="' + allUsers[user].username + '">').appendTo("body");
-
+     var $nameDiv = $(' <div class="nameDiv" </div>').appendTo($user);
+     $nameDiv.html('<h1>' + allUsers[user].username + '</h1>');
 
      // for every badge earned, append an image to the user's div
      for (var badge in allUsers[user].badges) {
-       var $badges = $("<img>", {src: allUsers[user].badges[badge].url, alt: allUsers[user].badges[badge].name}).appendTo($user);
+       var $badges = $("<img>", {src: allUsers[user].badges[badge].url, id: allUsers[user].badges[badge].name, alt: allUsers[user].badges[badge].name}).appendTo($user);
      }
 
      // create new div for recommendations
@@ -198,7 +198,37 @@ function printBadges() {
        // console.log(rec);
          $("<img>", {src: allBadges[recs[rec][0]].url, alt: allBadges[recs[rec][0].name]}).appendTo($recDiv);
      }
+
+     j += 1
    }
+
+   //----LOAD MORE USER BUTTON (AT BOTTOM OF PAGE)
+   var k = 0;
+   //Hide all users except for first one loaded (which is .user0 - as defined in previous for-in-loop)
+   $(".user1, .user2, .user3, .user4, .user5, .user6, .user7").hide();
+   //Create load button
+   $('<div id="loadUser"> </div>').html("<h1> Load More </h1>").appendTo("body");
+   //On-click function to hide users; starts at 1(i.e. class "user1") first time run, since user.0 is already loaded and visible; increments each time
+   $("#loadUser").click(function() {
+      k += 1;
+      $(".user" + k).show(1800);
+   });
+
+   $("#loadUser").mouseover(function() {
+      k += 1;
+      $(".user" + k).show(1800);
+   });
+
+
+
+
+
+
+ //
+ //   $("#"+ allUsers[user].badges[badge].name).click(function() {
+ //    var badgePopUp = $(' <div class="badgePopUp"> ' + '</div>');
+ //    badgePopUp.html('<h1>'  + allUsers[user].badges[badge].name + '</h1>').appendTo("body")
+ // });
 
 
  }
