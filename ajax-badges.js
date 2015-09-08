@@ -1,7 +1,7 @@
 // var _ = require('lodash');
 
-var usernames = ["mitchelllillie", "patharryux", "jeffdunn", "donguyen", "mkelley2", "josephfraley2", "kathleenkent", "adamtaitano", "jasonsiren"];
-// var usernames = ["jtz1983", "erikphansen"];
+var usernames = ["patharryux", "jeffdunn", "donguyen", "josephfraley2", "kathleenkent", "adamtaitano", "jasonsiren", "erikphansen"];
+
 
 //check for inputs and add to array on button click
 // var $uname = $('#uname').val();
@@ -166,44 +166,44 @@ function recommend (uname) {
 // });
 }
 
+
+
 function printBadges() {
-  $("body").dblclick(
-    function () {
-      $("img").slideDown();
-      $("p").empty();
-    });
 
-  // for every user:
-  for (var user in allUsers) {
+   // for every user:
+   for (var user in allUsers) {
 
-    // create a div with class user and ID of username
+     // create a div with class user and ID of username
 
-    var $user = $('<div class="user" id="' + allUsers[user].username + '">').appendTo("body");
+     var $nameDiv = $(' <div class="nameDiv" </div>').appendTo("body");
+     $nameDiv.html('<h1>' + allUsers[user].username + '</h1>')
 
-    // create a header with the username
-    $("<H1>").appendTo($user).html(allUsers[user].name);
-
-    // for every badge earned, append an image to the user's div
-    for (var badge in allUsers[user].badges) {
-      $("<img>", {src: allUsers[user].badges[badge].url, alt: allUsers[user].badges[badge].name}).appendTo($user);
-    }
-
-    // create new div for recommendations
-    var $recDiv = $("<div>", {class: "recommended"}).appendTo($user);
-    $("<H3>").html("Recommended badges:").appendTo($recDiv);
-
-    // for all recommended badges, add an image if score meets qualifications with class "recommended"
-    var recs = recommend(user);
-    // console.log("recs = ");
-    // console.log(recs);
-    for (var rec in recs) {
-      // console.log(rec);
-        $("<img>", {src: allBadges[recs[rec][0]].url, alt: allBadges[recs[rec][0].name]}).appendTo($recDiv);
-    }
-  }
+     var $user = $('<div class="user" id="' + allUsers[user].username + '">').appendTo("body");
 
 
-}
+     // for every badge earned, append an image to the user's div
+     for (var badge in allUsers[user].badges) {
+       var $badges = $("<img>", {src: allUsers[user].badges[badge].url, alt: allUsers[user].badges[badge].name}).appendTo($user);
+     }
+
+     // create new div for recommendations
+     var $recDiv = $("<div>", {class: "recommended"}).appendTo($user);
+     $("<H3>").html("Recommended badges:").appendTo($recDiv);
+
+     // for all recommended badges, add an image if score meets qualifications with class "recommended"
+     var recs = recommend(user);
+     // console.log("recs = ");
+     // console.log(recs);
+     for (var rec in recs) {
+       // console.log(rec);
+         $("<img>", {src: allBadges[recs[rec][0]].url, alt: allBadges[recs[rec][0].name]}).appendTo($recDiv);
+     }
+   }
+
+
+ }
+
+
 //
 // if (typeof module !== undefined) {
 // module.exports = {
