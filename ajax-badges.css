@@ -24,6 +24,16 @@ div {
   margin: 10px;
 }
 
+.invisible {
+  display: none;
+}
+
+.header {
+  border: none;
+  padding: 5px;
+  height: 100px;
+}
+
 .wrapper {
   width: 20%;
   float: left;

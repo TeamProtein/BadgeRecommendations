@@ -1,7 +1,6 @@
 // var _ = require('lodash');
 
-var usernames = ["mitchelllillie", "patharryux", "jeffdunn", "donguyen", "mkelley2", "josephfraley2", "kathleenkent", "adamtaitano", "jasonsiren"];
-// var usernames = ["jtz1983", "erikphansen"];
+var usernames = ["mitchelllillie", "patharryux", "jeffdunn", "donguyen", "mkelley2", "josephfraley2", "kathleenkent", "adamtaitano", "jasonsiren", "jtz1983", "erikphansen"];
 
 //check for inputs and add to array on button click
 // var $uname = $('#uname').val();
@@ -181,7 +180,16 @@ function printBadges() {
     var $user = $('<div class="user" id="' + allUsers[user].username + '">').appendTo("body");
 
     // create a header with the username
-    $("<H1>").appendTo($user).html(allUsers[user].name);
+    var $header = $("<div class='header'>").appendTo($user).hover(function() {
+      $("h1", this).addClass("invisible");
+      $("h2", this).removeClass("invisible");
+    }, function() {
+        $("h1", this).removeClass("invisible");
+        $("h2", this).addClass("invisible");
+      }
+    );
+    $("<H1>").appendTo($header).html(allUsers[user].name);
+    var $username = $("<H2 class='invisible'>").html(allUsers[user].username).appendTo($header);
 
     // for every badge earned, append an image to the user's div
     for (var badge in allUsers[user].badges) {
